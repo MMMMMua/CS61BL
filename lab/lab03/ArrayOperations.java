@@ -7,7 +7,9 @@ public class ArrayOperations {
 		if (pos < 0 || pos >= values.length) {
 			return;
 		}
-		// YOUR CODE HERE
+		for (int i = pos; i < values.length-1; ++i)
+			values[i] = values[i+1];
+		values[values.length-1] = 0;
 	}
 	
 	// Insert newInt at the given position in the argument array,
@@ -17,6 +19,8 @@ public class ArrayOperations {
 		if (pos < 0 || pos >= values.length) {
 			return;
 		}
-		// YOUR CODE HERE
+		for (int i = values.length-1; i > pos; --i)
+			values[i] = values[i-1];
+		values[pos] = newInt;
 	}
 }
