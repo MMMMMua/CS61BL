@@ -19,8 +19,35 @@ public class IntList {
         int item;
         IntListNode next;
 
+        @Override
+        public String toString() {
+            return "IntListNode{" +
+                   "item=" + item +
+                   ", next=" + next +
+                   '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof IntListNode)) return false;
+
+            IntListNode that = (IntListNode) o;
+
+            if (item != that.item) return false;
+            return next != null ? next.equals(that.next) : that.next == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = item;
+            result = 31 * result + (next != null ? next.hashCode() : 0);
+            return result;
+        }
+
         public IntListNode(int item, IntListNode next) {
             this.item = item;
+
             this.next = next;
         }
     }
@@ -63,7 +90,32 @@ public class IntList {
      *            the end of the list.
      */
     public void insert(int x, int position) {
-        // Fill me in!
+        IntListNode iter = this.head, before = null;
+        IntListNode newnode = new IntListNode(x, null);
+
+        if (size == 0) {
+            this.head = newnode;
+            size += 1;
+            return;
+        }
+        while (iter.next != null && position > 0) {
+            before = iter;
+            iter = iter.next;
+            position--;
+        }
+
+        if (position > 0) {
+            newnode.next = null;
+            iter.next = newnode;
+        }
+        else {
+            if (before != null)
+                before.next = newnode;
+            else
+                this.head = newnode;
+            newnode.next = iter;
+        }
+        size += 1;
     }
 
     /**
@@ -71,15 +123,48 @@ public class IntList {
      * @return a new IntList without modifying either parameter
      */
     public static IntList merge(IntList a, IntList b) {
-        // Fill me in!
-        return null;
+        IntListNode head1 = a.head, head2 = b.head;
+        IntList merged = new IntList();
+        while (head1 != null && head2 != null) {
+            if (head1.item > head2.item) {
+                merged.insert(head2.item, 10000000);
+                head2 = head2.next;
+            }
+            else {
+                merged.insert(head1.item, 10000000);
+                head1 = head1.next;
+            }
+        }
+
+        if (head2 == null)
+            while (head1 != null) {
+                merged.insert(head1.item, 10000000);
+                head1 = head1.next;
+            }
+
+        if (head1 == null)
+            while (head2 != null) {
+                merged.insert(head2.item, 10000000);
+                head2 = head2.next;
+            }
+        return merged;
     }
 
     /**
      * Reverse the current list recursively, using a helper method.
      */
     public void reverse() {
-        // Fill me in!
+        this.head = reverseHelper(this.head, null);
+    }
+
+    public static IntListNode reverseHelper(IntListNode l, IntListNode soFar) {
+        if (l.next == null) {
+            l.next = soFar;
+            return l;
+        }
+        IntListNode tmp = l.next;
+        l.next = soFar;
+        return reverseHelper(tmp, l);
     }
 
     /* Optional! */
@@ -91,6 +176,16 @@ public class IntList {
      */
     public void remove(int position) {
         if (position >= size) throw new IndexOutOfBoundsException();
-        // fill me in
+        IntListNode iter = this.head, before = null;
+        while (position > 0) {
+            before = iter;
+            iter = iter.next;
+            position--;
+        }
+        if (before != null)
+            before.next = iter.next;
+        else
+            this.head = iter.next;
+        this.size -= 1;
     }
 }
