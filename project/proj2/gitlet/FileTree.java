@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.awt.event.ComponentAdapter;
 import java.io.Serializable;
 import java.util.HashMap;
 
@@ -47,5 +48,12 @@ public class FileTree implements Serializable {
             return false;
         }
         return ((FileTree) obj).files.equals(this.files);
+    }
+
+    public void reMove(String fileName) {
+        if (files.containsKey(fileName)) {
+            files.remove(fileName);
+            Tools.fileDel(CommandParser.blobsSta, fileName);
+        }
     }
 }

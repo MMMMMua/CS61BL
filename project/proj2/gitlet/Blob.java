@@ -24,6 +24,14 @@ public class Blob implements Serializable {
         SHA_code = Utils.sha1(content);
     }
 
+    public Blob(File folder, String fileName) {
+        String path = Tools.getPath(folder, fileName);
+        File file = new File(path);
+        name = path;
+        content = new String(Utils.readContents(file));
+        SHA_code = Utils.sha1(content);
+    }
+
     public static Blob load(String path) {
         return (Blob) Tools.load(path);
     }

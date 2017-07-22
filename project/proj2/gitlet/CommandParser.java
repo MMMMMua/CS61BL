@@ -26,7 +26,12 @@ public class CommandParser implements Serializable {
     static Commit StagingCommit;
 
 
-    private void initSystem() {
+    private void initSystem() throws IOException {
+        if (!hasInited()) {
+            System.out.printf("Not in an initialized gitlet directory.\n");
+            return;
+        }
+
         String currAdds = HEAD.getAbsolutePath();
         String currPath = new String(Utils.readContents(new File(currAdds)));
         CurrentBranch = Branch.load(currPath);
@@ -68,11 +73,11 @@ public class CommandParser implements Serializable {
     }
 
     private void initCommit() {
-        Commit first = new Commit();
+        Commit first = new Commit(null, "initial commit");
         Commit staging = new Commit();
 
-        first.save(commitsHis.getAbsolutePath());
-        staging.save(commitsSta.getAbsolutePath());
+        first.save(commitsHis);
+        staging.save(commitsSta);
 
         Branch master = new Branch(first.toString(), "master"); //branch tracks a commit
         master.save(branches.getAbsolutePath());
@@ -90,15 +95,18 @@ public class CommandParser implements Serializable {
         initCommit();
     }
 
-    public void add(String fileName) {
+    public void add(String fileName) throws IOException {
         initSystem();
 
-        Blob fileToStage = new Blob(workDir + "/" + fileName);
+        if (!Tools.validFile(workDir, fileName)) {
+            System.out.printf("file does not exist.");
+            return;
+        }
+
+        Blob fileToStage = new Blob(workDir, fileName);
 
         if (!CurrentCommit.containBlob(fileToStage)) {
             StagingCommit.addBlob(fileToStage);
-        } else {
-            System.out.printf("file does not exist.\n");
         }
     }
 
@@ -111,11 +119,9 @@ public class CommandParser implements Serializable {
             return;
         }
 
-        Commit NewStagingCommit = (Commit) Tools.deepCopy(StagingCommit);
-
         StagingCommit.message = message;
-        StagingCommit.parent = CurrentCommit.toString();
-        StagingCommit.save(commitsHis.getAbsolutePath());
+        StagingCommit.parent = CurrentCommit.savingPostition;
+        StagingCommit.save(commitsHis);
 
         Tools.folderMove(blobsSta, blobsHis);
         Tools.folderDelt(blobsSta);
@@ -123,17 +129,38 @@ public class CommandParser implements Serializable {
         resetCurrCmt(StagingCommit);
     }
 
-    public void rm(String fileName) {
+    public void rm(String fileName) throws IOException {
         initSystem();
 
-        if (!StagingCommit.containFile(fileName)) { //what is the logic of deleting
-            //TODO
+        if (!StagingCommit.containFile(fileName) && !CurrentCommit.containFile(fileName)) {
+            System.out.printf("No reason to remove the file.");
+            return;
         }
-        Blob fileToRm = new Blob();
+
+        StagingCommit.reMove(fileName);
+        if (!CurrentCommit.containFile(fileName)) { //what is the logic of deleting
+            Tools.fileDel(workDir, fileName); // if file does not exist, it's fine.
+        }
     }
 
-    public void log() {
+    public void log() throws IOException {
+        initSystem();
 
+        String logs = "";
+        while (true) {
+            logs += "===\n";
+            logs += "Commit";
+            logs += CurrentCommit.toString();
+            logs += "\n";
+            logs += CurrentCommit.commitDate.toString();
+            logs += CurrentCommit.message;
+
+            if (CurrentCommit.savingPostition == "") {
+                CurrentCommit = Commit.load(CurrentCommit.savingPostition);
+                break;
+            }
+        }
+        System.out.println(logs);
     }
 
     public void globalLog() {

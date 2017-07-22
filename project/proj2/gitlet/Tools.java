@@ -75,4 +75,18 @@ public class Tools {
             }
         }
     }
+
+
+    public static String getPath(File folder, String fileName) {
+        return folder.getAbsolutePath() + "/" + fileName;
+    }
+
+    public static boolean validFile(File workDir, String fileName) {
+        return (new File(getPath(workDir, fileName)).exists());
+    }
+
+    public static boolean fileDel(File folder, String fileName) {
+        return Utils.restrictedDelete(new File(getPath(folder, fileName)));
+    }
+
 }

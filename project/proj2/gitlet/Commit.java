@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -31,9 +32,12 @@ public class Commit implements Serializable {
         return (Commit) Tools.load(path);
     }
 
+    static Commit load(File folder, String fileName) {
+        return (Commit) Tools.load(Tools.getPath(folder, fileName));
+    }
 
-    String save(String path) {
-        this.savingPostition = path + "/" + this.toString();
+    String save(File folder) {
+        this.savingPostition = folder.getAbsolutePath() + "/" + this.toString();
         Tools.save(this, this.savingPostition);
         return this.savingPostition;
     }
@@ -52,6 +56,10 @@ public class Commit implements Serializable {
         return files.contains(fileName);
     }
 
+    void reMove(String fileName) {
+        files.reMove(fileName);
+    }
+
     void addBlob(Blob file) { //only possible call in staging area.
         file.save(CommandParser.blobsSta.getAbsolutePath());
         files.addFile(file);
@@ -60,7 +68,7 @@ public class Commit implements Serializable {
 
     public String toString() {
         String info = String.valueOf(files.hashCode());
-        return new String(Utils.sha1(parent, info, message, commitDate.toString()));
+        return Utils.sha1(parent, info, message, commitDate.toString());
     }
 
 }
