@@ -8,23 +8,29 @@ import java.io.Serializable;
 public class Branch implements Serializable {
     String commit_id;
     String name;
+    String savingPosition;
 
-
-    public Branch(String __commit_id, String __name) {
+    Branch(String __commit_id, String __name) {
         commit_id = __commit_id;
         name = __name;
+        savingPosition = new String();
     }
 
-    public Branch load(String path) {
+    static Branch load(String path) {
         return (Branch) Tools.load(path);
     }
 
-    public String save(String path) {
-        String location = path + "/" + this.toString();
-        Tools.save(this, location);
-        return location;
+    String save(String path) {
+        savingPosition = path + "/" + this.toString();
+        Tools.save(this, savingPosition);
+        return savingPosition;
     }
 
+    String save() {
+        assert (!savingPosition.equals(""));
+        Tools.save(this, savingPosition);
+        return savingPosition;
+    }
     public String toString() {
         return name;
     }

@@ -1,88 +1,170 @@
 package gitlet;
 
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
-
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by hanxiangren on 19/07/2017.
  */
-public class CommandParser {
-    public static File home_dir;
-    public static File staging;
-    public static File history;
-    public static File systems;
-    public static File blobs;
-    public static File commits;
-    public static File branches;
-    public static File HEAD;
+public class CommandParser implements Serializable {
+    static File workDir = new File("demo");
+    static File homeDir = new File(workDir.getAbsolutePath() + "/.gitlet");
+    static File staging = new File(homeDir.getAbsolutePath() + "/staging");
+    static File history = new File(homeDir.getAbsolutePath() + "/history");
+    static File systems = new File(homeDir.getAbsolutePath() + "/systems");
+    static File blobsHis = new File(history.getAbsolutePath() + "/blobs");
+    static File commitsHis = new File(history.getAbsolutePath() + "/commits");
+    static File blobsSta = new File(staging.getAbsolutePath() + "/blobs");
+    static File commitsSta = new File(staging.getAbsolutePath() + "/commits");
+    static File branches = new File(systems.getAbsolutePath() + "/branches");
+    static File HEAD = new File(systems.getAbsolutePath() + "/HEAD");
 
-    private static void createfile() throws IOException {
-        //home_dir.mkdir();
-        staging = new File(home_dir.getAbsolutePath() + "/staging");
-        history = new File(home_dir.getAbsolutePath() + "/history");
-        systems = new File(home_dir.getAbsolutePath() + "/systems");
+    static Branch CurrentBranch;
+    static Commit CurrentCommit;
+    static Commit StagingCommit;
 
+
+    private void initSystem() {
+        String currAdds = HEAD.getAbsolutePath();
+        String currPath = new String(Utils.readContents(new File(currAdds)));
+        CurrentBranch = Branch.load(currPath);
+        CurrentCommit = Commit.load(commitsHis.getAbsolutePath() + "/" + CurrentBranch.commit_id);
+
+        List<String> staging = Utils.plainFilenamesIn(commitsSta);
+        StagingCommit = Commit.load(commitsSta.getAbsolutePath() + "/" + staging.get(0));
+        //there is only one file in that directory.
+    }
+
+    private void createFile() throws IOException {
         staging.mkdir();
         history.mkdir();
         systems.mkdir();
 
-        blobs = new File(history.getAbsolutePath() + "/blobs");
-        commits = new File(history.getAbsolutePath() + "/commits");
-        branches = new File(systems.getAbsolutePath() + "/branches");
-
-        blobs.mkdir();
-        commits.mkdir();
+        blobsHis.mkdir();
+        commitsHis.mkdir();
+        blobsSta.mkdir();
+        commitsSta.mkdir();
         branches.mkdir();
 
-        HEAD = new File(systems.getAbsolutePath() + "/HEAD");
         HEAD.createNewFile();
     }
 
-    private static boolean has_inited() throws IOException {
-        File test = new File("../demo/.gitlet");
-        if (test.isDirectory())
+    private boolean hasInited() throws IOException {
+        if (homeDir.isDirectory())
             return true;
-        home_dir = test;
-        home_dir.mkdir();
+        homeDir.mkdir();
         return false;
     }
 
-
-    private static void init_commit() {
-        Commit first = new Commit();
-        first.save(commits.getAbsolutePath());
-
-        Branch master = new Branch(first.toString(), "master"); //branch tracks a commit
-        String head_pos = master.save(branches.getAbsolutePath());
-
-
-        Utils.writeContents(HEAD, head_pos.getBytes());
+    private void resetHeader(Branch newHead) {
+        Utils.writeContents(HEAD, newHead.savingPosition.getBytes());
     }
 
-    public static void init() throws IOException {
-        if (has_inited()) {
+    private void resetCurrCmt(Commit newCommit) {
+        CurrentBranch.commit_id = newCommit.toString();
+        CurrentBranch.save();
+    }
+
+    private void initCommit() {
+        Commit first = new Commit();
+        Commit staging = new Commit();
+
+        first.save(commitsHis.getAbsolutePath());
+        staging.save(commitsSta.getAbsolutePath());
+
+        Branch master = new Branch(first.toString(), "master"); //branch tracks a commit
+        master.save(branches.getAbsolutePath());
+
+        resetHeader(master);
+    }
+
+    void init() throws IOException {
+        if (hasInited()) {
             System.out.printf("A gitlet version-control system already exists in the current directory.\n");
             return;
         }
 
-        createfile();
-        init_commit();
-        //System.out.printf("Gitlet has initiated.\n");
+        createFile();
+        initCommit();
     }
 
-    public static void add(String filename) {
-        File staging = new File(home_dir + "/" + filename);
-        if (staging.exists()) {
-            // TODO
-        }
-        else {
-            System.out.printf("File does not exist.");
+    public void add(String fileName) {
+        initSystem();
+
+        Blob fileToStage = new Blob(workDir + "/" + fileName);
+
+        if (!CurrentCommit.containBlob(fileToStage)) {
+            StagingCommit.addBlob(fileToStage);
+        } else {
+            System.out.printf("file does not exist.\n");
         }
     }
 
-    public static void commit() throws IOException {
+
+    public void commit(String message) throws IOException, ClassNotFoundException {
+        initSystem();
+
+        if (StagingCommit.files.equals(CurrentCommit.files)) {
+            System.out.printf("No changes added to the commit.\n");
+            return;
+        }
+
+        Commit NewStagingCommit = (Commit) Tools.deepCopy(StagingCommit);
+
+        StagingCommit.message = message;
+        StagingCommit.parent = CurrentCommit.toString();
+        StagingCommit.save(commitsHis.getAbsolutePath());
+
+        Tools.folderMove(blobsSta, blobsHis);
+        Tools.folderDelt(blobsSta);
+
+        resetCurrCmt(StagingCommit);
+    }
+
+    public void rm(String fileName) {
+        initSystem();
+
+        if (!StagingCommit.containFile(fileName)) { //what is the logic of deleting
+            //TODO
+        }
+        Blob fileToRm = new Blob();
+    }
+
+    public void log() {
+
+    }
+
+    public void globalLog() {
+
+    }
+
+    public void find() {
+
+    }
+
+    public void status() {
+
+    }
+
+    public void checkOut() {
+
+    }
+
+    public void branch() {
+
+    }
+
+    public void rmBranch() {
+
+    }
+
+    public void reset() {
+
+    }
+
+    public void merge() {
 
     }
 }

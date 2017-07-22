@@ -1,8 +1,7 @@
 package gitlet;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * Created by hanxiangren on 20/07/2017.
@@ -10,33 +9,43 @@ import java.util.Collections;
 
 public class FileTree implements Serializable {
 
-    ArrayList<String> files;
+    HashMap<String, String> files;
 
-    public FileTree() {
-        files = new ArrayList<String>();
+    FileTree() {
+        files = new HashMap<String, String>();
     }
 
-    public FileTree(String... __files) {
-        Collections.addAll(files, __files);
-    }
-
-    public ArrayList<String> getcontent() {
+    public HashMap<String, String> getcontent() {
         return files;
     }
 
-    public void addFile(String file) {
-        if (files.contains(file)) {
-            System.out.printf("file already exists");
-        } else {
-            files.add(file);
-        }
+    void addFile(Blob file) {
+        files.put(file.name, file.SHA_code); //put will overwrite that key-val if exists.
     }
 
-    public void removeFile(String file) {
-        if (files.contains(file)) {
-            files.remove(files.indexOf(file));
+    void removeFile(String name) {
+        if (files.containsKey(name)) {
+            files.remove(name);
         } else {
             System.out.printf("file does not exist");
         }
+    }
+
+    boolean contains(Blob file) {
+        return files.containsKey(file.name) && files.get(file.name).equals(file.content);
+    }
+
+    boolean contains(String fileName) {
+        return files.containsKey(fileName);
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj.getClass() == this.getClass())) {
+            return false;
+        }
+        return ((FileTree) obj).files.equals(this.files);
     }
 }

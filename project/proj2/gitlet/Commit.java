@@ -9,10 +9,9 @@ import java.util.Date;
 public class Commit implements Serializable {
     String parent;
     String message;
+    String savingPostition;
     Date commitDate;
     FileTree files;
-    //ArrayList<String> files;
-
 
     public Commit() {
         parent = "";
@@ -28,23 +27,40 @@ public class Commit implements Serializable {
         files = new FileTree();
     }
 
-    public String save(String path) {
-        String location = path + "/" + this.toString();
-        Tools.save(this, location);
-        return location;
-    }
-
-    public static Commit load(String path) {
+    static Commit load(String path) {
         return (Commit) Tools.load(path);
     }
 
-    public String toString() {
-        String info = "";
-        for (String file : files.getcontent()) {
-            info += file;
-        }
 
-        String SHA_code = gitlet.Utils.sha1(parent, info, commitDate.toString());
-        return SHA_code;
+    String save(String path) {
+        this.savingPostition = path + "/" + this.toString();
+        Tools.save(this, this.savingPostition);
+        return this.savingPostition;
     }
+
+    String save() {
+        assert (!this.savingPostition.equals(""));
+        Tools.save(this, this.savingPostition);
+        return this.savingPostition;
+    }
+
+    boolean containBlob(Blob fileName) {
+        return files.contains(fileName);
+    }
+
+    boolean containFile(String fileName) {
+        return files.contains(fileName);
+    }
+
+    void addBlob(Blob file) { //only possible call in staging area.
+        file.save(CommandParser.blobsSta.getAbsolutePath());
+        files.addFile(file);
+        this.save();
+    }
+
+    public String toString() {
+        String info = String.valueOf(files.hashCode());
+        return new String(Utils.sha1(parent, info, message, commitDate.toString()));
+    }
+
 }

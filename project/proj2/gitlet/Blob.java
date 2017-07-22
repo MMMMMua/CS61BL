@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -13,7 +14,14 @@ public class Blob implements Serializable {
     public Blob(String __name, String __content) {
         name = __name;
         content = __content;
-        SHA_code = Utils.sha1(name, content);
+        SHA_code = Utils.sha1(content);
+    }
+
+    public Blob(String path) {
+        File file = new File(path);
+        name = file.getName();
+        content = new String(Utils.readContents(file));
+        SHA_code = Utils.sha1(content);
     }
 
     public static Blob load(String path) {
@@ -25,7 +33,6 @@ public class Blob implements Serializable {
         Tools.save(this, location);
         return location;
     }
-
 
     public String toString() {
         return SHA_code;

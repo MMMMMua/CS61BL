@@ -36,10 +36,21 @@ public class UnitTest {
 		ArrayList<String> str = new ArrayList<String>();
 		str.add("abc");
 		str.add("def");
-		//gitlet.Commit cmt = new gitlet.Commit("master", str);
-        Commit cmt = Commit.load("/Users/hanxiangren/Program/cs61b/workspace/project/proj2/demo/.gitlet/history/commits/73d374d8bbb989a1d52a9f9040c2674a67a9b91d73d374d8bbb989a1d52a9f9040c2674a67a9b91d");
-        System.out.printf("%s", cmt.toString());
 	}
+
+	@Test
+    public void TestAdd() throws IOException {
+        String[] arg = {"add", "Untitled.txt"};
+        Main test = new Main();
+        test.main(arg);
+        Commit cmt = (Commit) Tools.load("/Users/hanxiangren/Program/cs61b/workspace/project/proj2/demo/.gitlet/staging/commits/0c31b368ca63e1702c8e2bffad01b54baf5da7e7");
+    }
+
+    @Test
+    public void TestRecover() throws IOException {
+        Blob blb = (Blob) Tools.load("/Users/hanxiangren/Program/cs61b/workspace/project/proj2/demo/.gitlet/staging/blobs/2d0e228e8e8dcb694fafcd6695a8e8d20ea3985d");
+        System.out.println(blb.content);
+    }
 }
 
 
