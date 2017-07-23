@@ -5,7 +5,6 @@ import org.junit.Test;
 import java.io.*;
 import java.io.IOException;
 import java.util.ArrayList;
-
 import static org.junit.Assert.*;
 
 /** The suite of all JUnit tests for the gitlet package.
@@ -25,31 +24,51 @@ public class UnitTest {
     }
 
     @Test
-    public void TestMain() throws IOException {
+    public void TestMain() throws IOException, ClassNotFoundException {
 		String[] arg = {"init"};
         Main test = new Main();
 		test.main(arg);
     }
 
-	@Test
-	public void TestCommit() {
-		ArrayList<String> str = new ArrayList<String>();
-		str.add("abc");
-		str.add("def");
-	}
-
-	@Test
-    public void TestAdd() throws IOException {
-        String[] arg = {"add", "Untitled.txt"};
+    @Test
+    public void TestAdd() throws IOException, ClassNotFoundException {
+        String[] arg = {"add", "a.txt"};
         Main test = new Main();
         test.main(arg);
-        Commit cmt = (Commit) Tools.load("/Users/hanxiangren/Program/cs61b/workspace/project/proj2/demo/.gitlet/staging/commits/0c31b368ca63e1702c8e2bffad01b54baf5da7e7");
+        //Commit cmt = (Commit) Tools.load("/Users/hanxiangren/Program/cs61b/workspace/project/proj2/demo/.gitlet/staging/commits/5bd381c223457d7a316f4bbb6bdc35a3806a606c");
     }
+
+	@Test
+	public void TestCommit() throws IOException, ClassNotFoundException {
+		String[] arg = {"commit", "rm a file"};
+		Main test = new Main();
+		test.main(arg);
+	}
 
     @Test
     public void TestRecover() throws IOException {
-        Blob blb = (Blob) Tools.load("/Users/hanxiangren/Program/cs61b/workspace/project/proj2/demo/.gitlet/staging/blobs/2d0e228e8e8dcb694fafcd6695a8e8d20ea3985d");
+        Blob blb = (Blob) Tools.load("/Users/hanxiangren/Program/cs61b/workspace/project/proj2/demo/.gitlet/history/blobs/af5367aa7c6b996432807a1efd7fc3afa19aff06");
+        //Commit first = ()
         System.out.println(blb.content);
+    }
+
+    @Test public void TestLog() throws IOException, ClassNotFoundException {
+        String[] arg = {"log"};
+        Main test = new Main();
+        test.main(arg);
+    }
+    @Test
+    public void TestGlobalLog() throws IOException, ClassNotFoundException {
+        String[] arg = {"global-log"};
+        Main test = new Main();
+        test.main(arg);
+    }
+
+    @Test
+    public void TestRm() throws IOException, ClassNotFoundException {
+        String[] arg = {"rm", "a.txt"};
+        Main test = new Main();
+        test.main(arg);
     }
 }
 

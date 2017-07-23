@@ -58,6 +58,7 @@ public class Commit implements Serializable {
 
     void reMove(String fileName) {
         files.reMove(fileName);
+        this.save();
     }
 
     void addBlob(Blob file) { //only possible call in staging area.
@@ -71,4 +72,16 @@ public class Commit implements Serializable {
         return Utils.sha1(parent, info, message, commitDate.toString());
     }
 
+    public String commitMessage() {
+        String logs = new String();
+        logs += "===\n";
+        logs += "Commit ";
+        logs += this.toString();
+        logs += "\n";
+        logs += this.commitDate.toString();
+        logs += "\n";
+        logs += this.message;
+        logs += "\n";
+        return logs;
+    }
 }

@@ -32,13 +32,12 @@ public class CommandParser implements Serializable {
             return;
         }
 
-        String currAdds = HEAD.getAbsolutePath();
-        String currPath = new String(Utils.readContents(new File(currAdds)));
+        String currPath = new String(Utils.readContents(HEAD));
         CurrentBranch = Branch.load(currPath);
-        CurrentCommit = Commit.load(commitsHis.getAbsolutePath() + "/" + CurrentBranch.commit_id);
+        CurrentCommit = Commit.load(commitsHis, CurrentBranch.commit_id);
 
         List<String> staging = Utils.plainFilenamesIn(commitsSta);
-        StagingCommit = Commit.load(commitsSta.getAbsolutePath() + "/" + staging.get(0));
+        StagingCommit = Commit.load(commitsSta, staging.get(0));
         //there is only one file in that directory.
     }
 
@@ -57,8 +56,12 @@ public class CommandParser implements Serializable {
     }
 
     private boolean hasInited() throws IOException {
-        if (homeDir.isDirectory())
+        if (homeDir.isDirectory()) {
             return true;
+        }
+        if (!workDir.isDirectory()) {
+            workDir.mkdir();
+        }
         homeDir.mkdir();
         return false;
     }
@@ -73,16 +76,16 @@ public class CommandParser implements Serializable {
     }
 
     private void initCommit() {
-        Commit first = new Commit(null, "initial commit");
-        Commit staging = new Commit();
+        CurrentCommit = new Commit("", "initial commit");
+        StagingCommit = new Commit();
 
-        first.save(commitsHis);
-        staging.save(commitsSta);
+        CurrentCommit.save(commitsHis);
+        StagingCommit.save(commitsSta);
 
-        Branch master = new Branch(first.toString(), "master"); //branch tracks a commit
-        master.save(branches.getAbsolutePath());
+        CurrentBranch = new Branch(CurrentCommit.toString(), "master"); //branch tracks a commit
+        CurrentBranch.save(branches);
 
-        resetHeader(master);
+        resetHeader(CurrentBranch);
     }
 
     void init() throws IOException {
@@ -132,13 +135,14 @@ public class CommandParser implements Serializable {
     public void rm(String fileName) throws IOException {
         initSystem();
 
-        if (!StagingCommit.containFile(fileName) && !CurrentCommit.containFile(fileName)) {
+        String path = Tools.getPath(workDir, fileName);
+        if (!StagingCommit.containFile(path) && !CurrentCommit.containFile(path)) {
             System.out.printf("No reason to remove the file.");
             return;
         }
 
-        StagingCommit.reMove(fileName);
-        if (!CurrentCommit.containFile(fileName)) { //what is the logic of deleting
+        StagingCommit.reMove(path);
+        if (!CurrentCommit.containFile(path)) { //what is the logic of deleting
             Tools.fileDel(workDir, fileName); // if file does not exist, it's fine.
         }
     }
@@ -146,25 +150,24 @@ public class CommandParser implements Serializable {
     public void log() throws IOException {
         initSystem();
 
-        String logs = "";
         while (true) {
-            logs += "===\n";
-            logs += "Commit";
-            logs += CurrentCommit.toString();
-            logs += "\n";
-            logs += CurrentCommit.commitDate.toString();
-            logs += CurrentCommit.message;
+            System.out.println(CurrentCommit.commitMessage());
 
-            if (CurrentCommit.savingPostition == "") {
-                CurrentCommit = Commit.load(CurrentCommit.savingPostition);
+            if (!CurrentCommit.parent.equals("")) {
+                CurrentCommit = Commit.load(CurrentCommit.parent);
+            } else {
                 break;
             }
         }
-        System.out.println(logs);
     }
 
-    public void globalLog() {
-
+    public void globalLog() throws IOException {
+        initSystem();
+        List<String> commits = Utils.plainFilenamesIn(commitsHis);
+        for (String cmt: commits) {
+            Commit Cmt = Commit.load(commitsHis, cmt);
+            System.out.println(Cmt.commitMessage());
+        }
     }
 
     public void find() {

@@ -1,5 +1,6 @@
 package gitlet;
 
+import java.io.File;
 import java.io.Serializable;
 
 /**
@@ -26,11 +27,18 @@ public class Branch implements Serializable {
         return savingPosition;
     }
 
+    String save(File folder) {
+        savingPosition = Tools.getPath(folder, this.toString());
+        Tools.save(this, savingPosition);
+        return savingPosition;
+    }
+
     String save() {
         assert (!savingPosition.equals(""));
         Tools.save(this, savingPosition);
         return savingPosition;
     }
+
     public String toString() {
         return name;
     }

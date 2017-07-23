@@ -59,7 +59,6 @@ public class Main {
                 cmd.globalLog();
                 break;
             case "find":
-                
                 break;
             case "status":
                 break;

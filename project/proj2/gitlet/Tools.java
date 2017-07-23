@@ -70,8 +70,7 @@ public class Tools {
 
         if (filesToDel != null) {
             for (String file : filesToDel) {
-                File fileToDel = new File(folder.getAbsolutePath() + "/" + file);
-                Utils.restrictedDelete(fileToDel);
+                fileDel(folder, file);
             }
         }
     }
@@ -86,7 +85,7 @@ public class Tools {
     }
 
     public static boolean fileDel(File folder, String fileName) {
-        return Utils.restrictedDelete(new File(getPath(folder, fileName)));
+        return (new File(getPath(folder, fileName))).delete();
     }
 
 }
